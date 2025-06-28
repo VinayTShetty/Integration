@@ -1,65 +1,26 @@
 const express = require('express');
-const path = require('path');
 const router = express.Router();
-const supabase = require('../services/supabaseClient');
-const { sendWhatsappMessage } = require('../services/whatsapp');
+const { verifyOTP } = require('../services/otpService');
 
-// Serve OTP form
+/**
+ * ✅ GET /otp
+ * Renders the OTP input form.
+ * Expects ?phone= param in URL.
+ */
 router.get('/otp', (req, res) => {
   const phone = req.query.phone;
-  if (!phone) return res.status(400).send('Missing phone');
-
-  // Use simple templating: replace {{phone}} in HTML
-  const fs = require('fs');
-  let html = fs.readFileSync(path.join(__dirname, '../views/otp.html'), 'utf8');
-  html = html.replace('{{phone}}', phone);
-  res.send(html);
-});
-
-// Handle OTP verification
-router.post('/otp-submit', async (req, res) => {
-  const { phone, otp } = req.body;
-  if (!phone || !otp) return res.status(400).send('Missing phone or OTP');
-
-  // Check OTP
-  const { data, error } = await supabase
-    .from('owners')
-    .select('id')
-    .eq('mobile', phone)
-    .single();
-
-  if (!data) return res.status(400).send('User not found');
-
-  const ownerId = data.id;
-
-  const { data: otpRecord } = await supabase
-    .from('owner_otps')
-    .select('*')
-    .eq('owner_id', ownerId)
-    .eq('otp_code', otp)
-    .eq('is_verified', false)
-    .single();
-
-  if (!otpRecord) {
-    return res.status(400).send('Invalid OTP');
+  if (!phone) {
+    return res.status(400).send('Missing phone number');
   }
-
-  // Mark OTP verified
-  await supabase
-    .from('owner_otps')
-    .update({ is_verified: true })
-    .eq('id', otpRecord.id);
-
-  // Mark owner verified
-  await supabase
-    .from('owners')
-    .update({ is_verified: true })
-    .eq('id', ownerId);
-
-  // Notify user on WhatsApp
-  await sendWhatsappMessage(phone, '✅ Your OTP was verified successfully! Proceed to payment.');
-
-  res.send('✅ OTP verified! You can close this page.');
+  // Renders views/otp.ejs with phone value
+  res.render('otp', { phone });
 });
+
+/**
+ * ✅ POST /verify-otp
+ * Handles OTP verification form submission.
+ * Delegates to otpService.verifyOTP(req, res)
+ */
+router.post('/verify-otp', verifyOTP);
 
 module.exports = router;

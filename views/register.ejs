@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Registration</title>
+  <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+  <h2>Business Registration</h2>
+  <form action="/register-submit" method="POST">
+    <input type="hidden" name="mobile" value="<%= phone %>">
+
+    <label>Owner Name:</label>
+    <input type="text" name="owner_name" required><br>
+
+    <label>Business Name:</label>
+    <input type="text" name="business_name" required><br>
+
+    <label>Location:</label>
+    <input type="text" name="location"><br>
+
+    <label>Food Type:</label>
+    <input type="text" name="food_type"><br>
+
+    <label>Country:</label>
+    <input type="text" name="country"><br>
+
+    <button type="submit">Register</button>
+  </form>
+</body>
+</html>

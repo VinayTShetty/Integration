@@ -2,17 +2,17 @@ const supabase = require('./supabaseClient');
 const { sendWhatsappMessage } = require('./whatsapp');
 
 /**
- * Generates a 6-digit OTP as string.
+ * Generates a 6-digit OTP as a string.
  */
-function generateOtp() {
+function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 /**
- * Sends OTP via WhatsApp message with verification link.
+ * Sends OTP via WhatsApp WITHOUT extra verification link.
  */
 async function sendOTP(ownerId, mobile) {
-  const otp = generateOtp();
+  const otp = generateOTP();
 
   // Store OTP in DB
   const { error: insertError } = await supabase
@@ -26,14 +26,10 @@ async function sendOTP(ownerId, mobile) {
     throw new Error('Could not save OTP');
   }
 
-  // Build verification link
-  const BASE_URL = process.env.BASE_URL;
-  const verifyLink = `${BASE_URL}/otp?phone=${mobile}`;
-
-  // Send WhatsApp message
+  // ✅ Just send OTP instruction
   await sendWhatsappMessage(
     mobile,
-    `✅ Your OTP is ${otp}. Please verify here: ${verifyLink}`
+    `✅ Your OTP is ${otp}. Please enter this on the registration website to complete verification.`
   );
 
   console.log(`✅ OTP sent to ${mobile}: ${otp}`);
@@ -75,9 +71,13 @@ async function verifyOTP(req, res) {
     return res.status(400).json({ error: 'OTP not found. Please request again.' });
   }
 
-  // Check match
-  if (otpEntry.otp_code !== otp || otpEntry.is_verified) {
-    return res.status(400).json({ error: 'Invalid or already used OTP' });
+  if (otpEntry.otp_code !== otp) {
+    console.error('❌ Invalid OTP');
+    return res.status(400).json({ error: 'Invalid OTP' });
+  }
+
+  if (otpEntry.is_verified) {
+    return res.status(400).json({ error: 'OTP already used' });
   }
 
   // Mark OTP verified
@@ -100,11 +100,14 @@ async function verifyOTP(req, res) {
 
   console.log(`✅ OTP verified for ${mobile}`);
 
-  // Respond
+  // Respond with payment link
   res.json({
     message: 'OTP Verified. Proceed to payment.',
     payment_link: `/pay?mobile=${mobile}`
   });
 }
 
-module.exports = { sendOTP, verifyOTP };
+module.exports = {
+  sendOTP,
+  verifyOTP
+};

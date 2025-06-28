@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OTP Verification</title>
+  <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+  <h2>OTP Verification</h2>
+
+  <p>Please enter the OTP you received on WhatsApp for phone <strong><%= phone %></strong>:</p>
+
+  <form action="/verify-otp" method="POST">
+    <input type="hidden" name="mobile" value="<%= phone %>">
+
+    <label>OTP:</label>
+    <input type="text" name="otp" required><br>
+
+    <button type="submit">Verify OTP</button>
+  </form>
+</body>
+</html>

@@ -5,7 +5,8 @@ const supabase = require('../services/supabaseClient');
 const { sendOTP } = require('../services/otpService');
 
 router.get('/register', (req, res) => {
-  res.sendFile(path.join(__dirname, '../views/register.html'));
+  const phone = req.query.phone;
+  res.render('register', { phone });
 });
 
 router.post('/register-submit', async (req, res) => {
@@ -13,7 +14,7 @@ router.post('/register-submit', async (req, res) => {
     const { mobile, owner_name, business_name, location, food_type, country } = req.body;
 
     // Check if owner exists
-    let { data: owner, error } = await supabase
+    let { data: owner } = await supabase
       .from('owners')
       .select('*')
       .eq('mobile', mobile)
@@ -21,7 +22,7 @@ router.post('/register-submit', async (req, res) => {
 
     if (!owner) {
       // Insert new owner
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('owners')
         .insert([{ mobile, owner_name, business_name, location, food_type, country }])
         .select()
@@ -30,12 +31,15 @@ router.post('/register-submit', async (req, res) => {
       owner = data;
     }
 
+    // ✅ Call sendOTP (this handles generate/save/send WhatsApp)
     await sendOTP(owner.id, mobile);
 
-    res.json({ message: 'Registration received. OTP sent on WhatsApp.' });
+    // ✅ Render OTP page for input
+    res.render('otp', { phone: mobile });
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Registration failed' });
+    res.status(500).send('Registration failed');
   }
 });
 

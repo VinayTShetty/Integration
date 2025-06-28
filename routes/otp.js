@@ -21,6 +21,9 @@ router.get('/otp', (req, res) => {
  * Handles OTP verification form submission.
  * Delegates to otpService.verifyOTP(req, res)
  */
-router.post('/verify-otp', verifyOTP);
+router.post('/verify-otp', async (req, res) => {
+  await verifyOTP(req, res);
+});
+
 
 module.exports = router;

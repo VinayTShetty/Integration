@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Payment Page</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+  <h2>Complete Your Payment</h2>
+  <p>Mobile: <%= mobile %></p>
+
+  <button id="payButton">Pay Now</button>
+
+  <script>
+    document.getElementById('payButton').onclick = function() {
+      var options = {
+        "key": "<%= process.env.RAZORPAY_KEY_ID %>",
+        "amount": 50000, // amount in paise: 500 INR
+        "currency": "INR",
+        "name": "Your Business Name",
+        "description": "Registration Payment",
+        "handler": function (response){
+            window.location.href = "/success";
+        }
+      };
+      var rzp = new Razorpay(options);
+      rzp.open();
+    };
+  </script>
+</body>
+</html>

@@ -42,23 +42,22 @@ async function verifyOTP(req, res) {
   const { mobile, otp } = req.body;
 
   if (!mobile || !otp) {
-    return res.status(400).json({ error: 'Missing mobile or OTP' });
+    return res.status(400).send('Missing mobile or OTP');
   }
 
-  // Look up owner
-  const { data: owner, error: ownerError } = await supabase
+  // Find owner
+  const { data: owner } = await supabase
     .from('owners')
     .select('id')
     .eq('mobile', mobile)
     .single();
 
-  if (ownerError || !owner) {
-    console.error('❌ Owner not found:', ownerError);
-    return res.status(404).json({ error: 'User not found' });
+  if (!owner) {
+    return res.status(404).send('User not found');
   }
 
-  // Get latest OTP entry
-  const { data: otpEntry, error: otpError } = await supabase
+  // Validate OTP
+  const { data: otpEntry } = await supabase
     .from('owner_otps')
     .select('*')
     .eq('owner_id', owner.id)
@@ -66,33 +65,21 @@ async function verifyOTP(req, res) {
     .limit(1)
     .single();
 
-  if (otpError || !otpEntry) {
-    console.error('❌ OTP entry not found:', otpError);
-    return res.status(400).json({ error: 'OTP not found. Please request again.' });
+  if (!otpEntry || otpEntry.otp_code !== otp || otpEntry.is_verified) {
+    return res.status(400).send('Invalid or already used OTP');
   }
 
-  if (otpEntry.otp_code !== otp) {
-    console.error('❌ Invalid OTP');
-    return res.status(400).json({ error: 'Invalid OTP' });
-  }
-
-  if (otpEntry.is_verified) {
-    return res.status(400).json({ error: 'OTP already used' });
-  }
-
-  // Mark OTP verified
+  // Mark OTP and owner as verified
   await supabase
     .from('owner_otps')
     .update({ is_verified: true })
     .eq('id', otpEntry.id);
 
-  // Mark owner as verified
   await supabase
     .from('owners')
     .update({ is_verified: true })
     .eq('id', owner.id);
 
-  // Send confirmation on WhatsApp
   await sendWhatsappMessage(
     mobile,
     '✅ OTP verified successfully! You may now proceed to payment.'
@@ -100,12 +87,10 @@ async function verifyOTP(req, res) {
 
   console.log(`✅ OTP verified for ${mobile}`);
 
-  // Respond with payment link
-  res.json({
-    message: 'OTP Verified. Proceed to payment.',
-    payment_link: `/pay?mobile=${mobile}`
-  });
+  // ✅ Instead of JSON, redirect to /pay page
+  res.redirect(`/pay?mobile=${mobile}`);
 }
+
 
 module.exports = {
   sendOTP,

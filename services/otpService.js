@@ -1,44 +1,41 @@
 const supabase = require('./supabaseClient');
-const { sendWhatsappMessage } = require('./whatsapp');
 
 /**
- * Generates a 6-digit OTP as a string.
+ * Generate a 6-digit OTP
  */
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 /**
- * Sends OTP via WhatsApp WITHOUT extra verification link.
+ * Create and store a new OTP in DB
  */
-async function sendOTP(ownerId, mobile) {
+async function createAndStoreOTP(ownerId) {
   const otp = generateOTP();
 
-  // Store OTP in DB
-  const { error: insertError } = await supabase
+  // Invalidate old OTPs
+  await supabase
     .from('owner_otps')
-    .insert([
-      { owner_id: ownerId, otp_code: otp }
-    ]);
+    .delete()
+    .eq('owner_id', ownerId);
 
-  if (insertError) {
-    console.error('❌ Failed to save OTP:', insertError);
+  // Insert new OTP
+  const { error } = await supabase
+    .from('owner_otps')
+    .insert([{ owner_id: ownerId, otp_code: otp }]);
+
+  if (error) {
+    console.error('❌ Failed to save OTP:', error);
     throw new Error('Could not save OTP');
   }
 
-  // ✅ Just send OTP instruction
-  await sendWhatsappMessage(
-    mobile,
-    `✅ Your OTP is ${otp}. Please enter this on the registration website to complete verification.`
-  );
-
-  console.log(`✅ OTP sent to ${mobile}: ${otp}`);
+  return otp;
 }
 
 /**
- * Verifies submitted OTP from user.
+ * Verify user submitted OTP
  */
-async function verifyOTP(req, res) {
+async function verifyOTP(req, res, sendWhatsappMessage) {
   const { mobile, otp } = req.body;
 
   if (!mobile || !otp) {
@@ -56,7 +53,7 @@ async function verifyOTP(req, res) {
     return res.status(404).send('User not found');
   }
 
-  // Validate OTP
+  // Find latest OTP
   const { data: otpEntry } = await supabase
     .from('owner_otps')
     .select('*')
@@ -69,17 +66,19 @@ async function verifyOTP(req, res) {
     return res.status(400).send('Invalid or already used OTP');
   }
 
-  // Mark OTP and owner as verified
+  // Mark OTP verified
   await supabase
     .from('owner_otps')
     .update({ is_verified: true })
     .eq('id', otpEntry.id);
 
+  // Mark owner verified
   await supabase
     .from('owners')
     .update({ is_verified: true })
     .eq('id', owner.id);
 
+  // Notify user via WhatsApp
   await sendWhatsappMessage(
     mobile,
     '✅ OTP verified successfully! You may now proceed to payment.'
@@ -87,12 +86,11 @@ async function verifyOTP(req, res) {
 
   console.log(`✅ OTP verified for ${mobile}`);
 
-  // ✅ Instead of JSON, redirect to /pay page
   res.redirect(`/pay?mobile=${mobile}`);
 }
 
-
 module.exports = {
-  sendOTP,
+  generateOTP,
+  createAndStoreOTP,
   verifyOTP
 };

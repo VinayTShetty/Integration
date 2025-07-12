@@ -1,23 +1,23 @@
 const express = require('express');
-const path = require('path');
 const router = express.Router();
-const { markPayment } = require('../services/paymentService');
+const { createOrder, markPayment } = require('../services/paymentService');
 
-// ✅ Serve the payment page with mobile number
+// Create Razorpay order (server-side)
+router.get('/create-order', createOrder);
+
+// Mark payment as successful (client-callback)
+router.post('/payment-success', markPayment);
+
+// Razorpay checkout page
 router.get('/pay', (req, res) => {
   const mobile = req.query.mobile;
-  if (!mobile) return res.status(400).send('Missing mobile');
-
-  // Renders views/payment.ejs and passes mobile
+  if (!mobile) return res.status(400).send('Missing mobile number');
   res.render('payment', { mobile });
 });
 
-// ✅ Simple Payment Success page
+// Static thank-you page
 router.get('/success', (req, res) => {
   res.send('✅ Payment successful! Thank you.');
 });
-
-// ✅ Dummy endpoint to simulate server-side payment success update
-router.post('/payment-success', markPayment);
 
 module.exports = router;

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Payment Page</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+  <h2>Complete Your Payment</h2>
+  <p>Mobile: <%= mobile %></p>
+  <p><strong>Test UPI:</strong> Use <code>success@razorpay</code> in test mode.</p>
+
+  <button id="payButton">Pay Now</button>
+
+  <script>
+    document.getElementById('payButton').onclick = async function () {
+      const mobile = "<%= mobile %>";
+      const amount = 500;
+
+      // ✅ 1. First create the order on server
+      const orderRes = await fetch(`/create-order?amount=${amount}`);
+      const order = await orderRes.json();
+
+      if (!order.id) {
+        alert('Error creating order. Please try again.');
+        return;
+      }
+
+      // ✅ 2. Open Razorpay checkout with the order_id
+      const options = {
+        key: "<%= process.env.RAZORPAY_KEY_ID %>",
+        amount: order.amount,
+        currency: order.currency,
+        name: "Your Business Name",
+        description: "Registration Payment",
+        order_id: order.id,
+        prefill: {
+          name: mobile,
+          email: "test@example.com",
+          contact: mobile
+        },
+        handler: function (response) {
+          // ✅ 3. POST payment success to our backend
+          fetch('/payment-success', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              mobile: mobile,
+              razorpay_order_id: order.id,
+              razorpay_payment_id: response.razorpay_payment_id
+            })
+          })
+          .then(() => window.location.href = "/success")
+          .catch(() => alert('Error saving payment'));
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    };
+  </script>
+</body>
+</html>

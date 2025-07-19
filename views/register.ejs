@@ -1,30 +1,436 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Registration</title>
-  <link rel="stylesheet" href="/public/css/styles.css">
+  <title> Registration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* Base Styles */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      position: relative;
+    }
+
+    /* Form Container */
+    .form-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      margin: 40px 0;
+    }
+
+    /* Close Button - Top Right */
+    .close-btn {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      font-size: 32px;
+      color: #777;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: none;
+      border: none;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      z-index: 10;
+    }
+
+    .close-btn:hover {
+      color: #333;
+      background: rgba(0,0,0,0.05);
+      transform: rotate(90deg);
+    }
+
+    /* Form Animation */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Form Styling */
+    form {
+      background: white;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      animation: fadeInUp 0.6s ease-out forwards;
+      transform-origin: center;
+      transition: all 0.3s ease;
+    }
+
+    form:hover {
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #2c3e50;
+      position: relative;
+      padding-bottom: 10px;
+    }
+
+    h2::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(90deg, #3498db, #9b59b6);
+      border-radius: 3px;
+    }
+
+    /* Input Field Styles */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #2c3e50;
+      transition: all 0.3s ease;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    input:focus, select:focus {
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+      outline: none;
+      transform: translateY(-2px);
+    }
+
+    input:hover, select:hover {
+      border-color: #bdc3c7;
+    }
+
+    /* Logo Upload Styling */
+    .logo-upload {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 1.5rem 0;
+    }
+
+    .logo-preview {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background-color: #f8f9fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      border: 2px dashed #ccc;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .logo-preview:hover {
+      border-color: #3498db;
+      background-color: #f1f8ff;
+    }
+
+    .logo-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: cover;
+    }
+
+    .logo-preview span {
+      color: #999;
+      text-align: center;
+      padding: 0 10px;
+    }
+
+    .upload-options {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .upload-btn {
+      background: #f1f1f1;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .upload-btn:hover {
+      background: #3498db;
+      color: white;
+    }
+
+    .upload-btn i {
+      font-size: 16px;
+    }
+
+    /* Button Styling */
+    .submit-btn {
+      background: linear-gradient(90deg, #3498db, #9b59b6);
+      color: white;
+      border: none;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 1.5rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-transform: uppercase;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 7px 14px rgba(0, 0, 0, 0.15);
+      background: linear-gradient(90deg, #2980b9, #8e44ad);
+    }
+
+    .submit-btn:active {
+      transform: translateY(1px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 600px) {
+      body {
+        padding: 15px;
+      }
+      
+      .form-wrapper {
+        margin: 20px 0;
+      }
+      
+      form {
+        padding: 1.5rem;
+      }
+      
+      h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      
+      .logo-preview {
+        width: 100px;
+        height: 100px;
+      }
+      
+      .upload-options {
+        flex-direction: column;
+        width: 100%;
+      }
+      
+      .upload-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-  <h2>Business Registration</h2>
-  <form action="/register-submit" method="POST">
-    <input type="hidden" name="mobile" value="<%= phone %>">
+  <div class="form-wrapper">
+    <button class="close-btn" id="closeBtn" aria-label="Close form">×</button>
+    
+    <form action="/register-submit" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="mobile" value="<%= phone %>">
 
-    <label>Owner Name:</label>
-    <input type="text" name="owner_name" required><br>
+      <h2>Register</h2>
 
-    <label>Business Name:</label>
-    <input type="text" name="business_name" required><br>
+      <div class="form-group">
+        <label for="owner_name">Owner Name</label>
+        <input type="text" id="owner_name" name="owner_name" required placeholder="Enter your full name">
+      </div>
 
-    <label>Location:</label>
-    <input type="text" name="location"><br>
+      <div class="form-group">
+        <label for="service_type">Select Service</label>
+        <select id="service_type" name="service_type" required>
+          <option value="" disabled selected>Select your service</option>
+          <option value="Appointment Booking">Appointment Booking</option>
+          <option value="Staff Management">Staff Management</option>
+          <option value="Restaurant">Restaurant</option>
+          <option value="Retail">Retail</option>
+          <option value="Healthcare">Healthcare</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
 
-    <label>Food Type:</label>
-    <input type="text" name="food_type"><br>
+      <div class="form-group">
+        <label for="business_name">Business Name</label>
+        <input type="text" id="business_name" name="business_name" required placeholder="Your business name">
+      </div>
 
-    <label>Country:</label>
-    <input type="text" name="country"><br>
+      <div class="form-group">
+        <label for="address">Address</label>
+        <input type="text" id="address" name="address" placeholder="Full business address">
+      </div>
 
-    <button type="submit">Register</button>
-  </form>
+      <div class="form-group">
+        <label>Business Logo</label>
+        <div class="logo-upload">
+          <div class="logo-preview" id="logoPreview">
+            <span>No logo selected</span>
+          </div>
+          <div class="upload-options">
+            <label class="upload-btn">
+              <i class="fas fa-image"></i> Gallery
+              <input type="file" id="logo" name="logo" accept="image/*" style="display: none;" onchange="previewLogo(event)">
+            </label>
+            <label class="upload-btn">
+              <i class="fas fa-camera"></i> Camera
+              <input type="file" id="camera" name="logo" accept="image/*" capture="environment" style="display: none;" onchange="previewLogo(event)">
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="country">Country</label>
+        <select id="country" name="country" required>
+          <option value="" disabled selected>Select your country</option>
+          <!-- Countries will be populated by JavaScript -->
+        </select>
+      </div>
+
+      <button type="submit" class="submit-btn">Submit</button>
+    </form>
+  </div>
+
+  <script>
+    // Enhanced close functionality
+    document.getElementById('closeBtn').addEventListener('click', function() {
+      // First try to close the window (works for popups)
+      if (window.opener || window.top !== window.self) {
+        window.close();
+      }
+      // Then try to go back in history
+      else if (window.history.length > 1) {
+        window.history.back();
+      }
+      // Final fallback - redirect to about:blank
+      else {
+        window.location.href = 'about:blank';
+      }
+    });
+
+    // Logo preview function
+    function previewLogo(event) {
+      const preview = document.getElementById('logoPreview');
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      
+      preview.innerHTML = '';
+      
+      reader.onload = function(e) {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        preview.appendChild(img);
+      }
+      
+      if (file) {
+        reader.readAsDataURL(file);
+      }
+    }
+    
+    // Country list - full version
+    const countries = [
+      "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", 
+      "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria",
+      "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados",
+      "Belarus", "Belgium", "Belize", "Benin", "Bhutan",
+      "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei",
+      "Bulgaria", "Burkina Faso", "Burundi", "Côte d'Ivoire", "Cabo Verde",
+      "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad",
+      "Chile", "China", "Colombia", "Comoros", "Congo (Congo-Brazzaville)",
+      "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia (Czech Republic)",
+      "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica",
+      "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea",
+      "Eritrea", "Estonia", "Eswatini (fmr. Swaziland)", "Ethiopia", "Fiji",
+      "Finland", "France", "Gabon", "Gambia", "Georgia",
+      "Germany", "Ghana", "Greece", "Grenada", "Guatemala",
+      "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Holy See",
+      "Honduras", "Hungary", "Iceland", "India", "Indonesia",
+      "Iran", "Iraq", "Ireland", "Israel", "Italy",
+      "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya",
+      "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia",
+      "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein",
+      "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia",
+      "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania",
+      "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco",
+      "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar (formerly Burma)",
+      "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand",
+      "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia",
+      "Norway", "Oman", "Pakistan", "Palau", "Palestine State",
+      "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines",
+      "Poland", "Portugal", "Qatar", "Romania", "Russia",
+      "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa",
+      "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia",
+      "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia",
+      "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan",
+      "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden",
+      "Switzerland", "Syria", "Tajikistan", "Tanzania", "Thailand",
+      "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia",
+      "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine",
+      "United Arab Emirates", "United Kingdom", "United States of America", "Uruguay", "Uzbekistan",
+      "Vanuatu", "Venezuela", "Vietnam", "Yemen", "Zambia",
+      "Zimbabwe"
+    ];
+
+    // Populate countries on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      const countrySelect = document.getElementById('country');
+      
+      // Sort countries alphabetically
+      countries.sort((a, b) => a.localeCompare(b));
+      
+      countries.forEach(country => {
+        const option = document.createElement('option');
+        option.value = country;
+        option.textContent = country;
+        countrySelect.appendChild(option);
+      });
+    });
+  </script>
 </body>
 </html>

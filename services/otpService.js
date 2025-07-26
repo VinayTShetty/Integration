@@ -33,28 +33,30 @@ async function createAndStoreOTP(ownerId) {
 }
 
 /**
- * Verify user submitted OTP
+ * Verify user-submitted OTP and respond for frontend animation
  */
 async function verifyOTP(req, res, sendWhatsappMessage) {
-  const { mobile, otp } = req.body;
+  const mobile = req.body.mobile || req.body.phone;
+  const otp = req.body.otp;
+
 
   if (!mobile || !otp) {
-    return res.status(400).send('Missing mobile or OTP');
+    return { success: false, message: 'Missing mobile or OTP' };
   }
 
-  // Find owner
-  const { data: owner } = await supabase
+  // Find owner by mobile
+  const { data: owner, error: ownerError } = await supabase
     .from('owners')
     .select('id')
     .eq('mobile', mobile)
     .single();
 
-  if (!owner) {
-    return res.status(404).send('User not found');
+  if (ownerError || !owner) {
+    return { success: false, message: 'User not found' };
   }
 
-  // Find latest OTP
-  const { data: otpEntry } = await supabase
+  // Fetch latest OTP
+  const { data: otpEntry, error: otpError } = await supabase
     .from('owner_otps')
     .select('*')
     .eq('owner_id', owner.id)
@@ -62,31 +64,32 @@ async function verifyOTP(req, res, sendWhatsappMessage) {
     .limit(1)
     .single();
 
-  if (!otpEntry || otpEntry.otp_code !== otp || otpEntry.is_verified) {
-    return res.status(400).send('Invalid or already used OTP');
+  if (otpError || !otpEntry || otpEntry.otp_code !== otp || otpEntry.is_verified) {
+    return { success: false, message: 'Invalid or already used OTP' };
   }
 
-  // Mark OTP verified
+  // Mark OTP as verified
   await supabase
     .from('owner_otps')
     .update({ is_verified: true })
     .eq('id', otpEntry.id);
 
-  // Mark owner verified
+  // Mark owner as verified
   await supabase
     .from('owners')
     .update({ is_verified: true })
     .eq('id', owner.id);
 
-  // Notify user via WhatsApp
+  // Notify via WhatsApp
   await sendWhatsappMessage(
     mobile,
-    '✅ OTP verified successfully! You may now proceed to payment.'
+    '✅ OTP verified successfully! You may now proceed to payment:'
   );
 
   console.log(`✅ OTP verified for ${mobile}`);
 
-  res.redirect(`/pay?mobile=${mobile}`);
+  // Inform caller (routes/otp.js) for animation control
+  return { success: true };
 }
 
 module.exports = {

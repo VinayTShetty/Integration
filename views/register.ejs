@@ -1,30 +1,193 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Registration</title>
-  <link rel="stylesheet" href="/public/css/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register Business</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e3f2fd, #bbdefb);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .form-box {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 450px;
+      animation: fadeInUp 0.6s ease;
+    }
+
+    @keyframes fadeInUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 25px;
+    }
+
+    .group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #444;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    input:focus, select:focus {
+      border-color: #1976d2;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+    }
+
+    /* Custom Dropdown */
+    .custom-select-wrapper {
+      position: relative;
+    }
+
+    .custom-select-wrapper select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-color: white;
+    }
+
+    .select-arrow {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: #555;
+      font-size: 14px;
+    }
+
+    input[type="file"] {
+      border: none;
+    }
+
+    .logo-preview {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 50%;
+      margin: 10px auto;
+      display: block;
+      border: 2px dashed #bbb;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #1976d2;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #0d47a1;
+    }
+  </style>
 </head>
 <body>
-  <h2>Business Registration</h2>
-  <form action="/register-submit" method="POST">
-    <input type="hidden" name="mobile" value="<%= phone %>">
 
-    <label>Owner Name:</label>
-    <input type="text" name="owner_name" required><br>
+  <div class="form-box">
+    <form action="/register-submit" method="POST" enctype="multipart/form-data" autocomplete="off">
+      <!-- Pre-filled from query param -->
+      <input type="hidden" name="mobile" value="<%= phone %>">
 
-    <label>Business Name:</label>
-    <input type="text" name="business_name" required><br>
+      <h2>Register Your Business</h2>
 
-    <label>Location:</label>
-    <input type="text" name="location"><br>
+      <!-- SERVICE SELECT -->
+      <div class="group">
+        <label for="service_selected">Select Service</label>
+        <div class="custom-select-wrapper">
+          <select name="service_selected" id="service_selected" required>
+            <option value="">Choose a service</option>
+            <option value="appointment">📅 Appointment Booking</option>
+            <option value="restaurant">🍽️ Restaurant Orders</option>
+            <option value="staff_management">👥 Staff Management</option>
+          </select>
+          <span class="select-arrow">▼</span>
+        </div>
+      </div>
 
-    <label>Food Type:</label>
-    <input type="text" name="food_type"><br>
+      <!-- OWNER NAME -->
+      <div class="group">
+        <label for="owner_name">Your Name</label>
+        <input type="text" name="owner_name" required placeholder="Your Name" />
+      </div>
 
-    <label>Country:</label>
-    <input type="text" name="country"><br>
+      <!-- BUSINESS NAME -->
+      <div class="group">
+        <label for="business_name">Business Name</label>
+        <input type="text" name="business_name" required placeholder="Legal Business Name" />
+      </div>
 
-    <button type="submit">Register</button>
-  </form>
+      <!-- ADDRESS -->
+      <div class="group">
+        <label for="location">Address</label>
+        <input type="text" name="location" required placeholder="City / Street" />
+      </div>
+
+      <!-- COUNTRY -->
+      <div class="group">
+        <label for="country">Country</label>
+        <input type="text" name="country" required placeholder="Country" />
+      </div>
+
+      <!-- LOGO -->
+      <div class="group">
+        <label for="logo">Upload Logo</label>
+        <input type="file" name="logo" accept="image/*" onchange="previewLogo(this)" required />
+        <img id="logo-preview" class="logo-preview" src="#" alt="Logo Preview" style="display: none;" />
+      </div>
+
+      <!-- SUBMIT -->
+      <button type="submit">Continue</button>
+    </form>
+  </div>
+
+  <script>
+    function previewLogo(input) {
+      const preview = document.getElementById('logo-preview');
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+  </script>
+
 </body>
 </html>
